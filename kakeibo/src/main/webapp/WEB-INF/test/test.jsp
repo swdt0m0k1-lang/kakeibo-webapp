@@ -110,9 +110,40 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 
 				/ メモ:<%=h.getAfterMemo()%>] <%
  } else {
- %> [<%=h.getAfterDate()%> / <%=h.getAfterType()%> / <%=h.getAfterItem()%>
-				/ 金額:<%=nf.format(h.getAfterAmount())%> / メモ:<%=h.getAfterMemo()%>]
-				<%
+ %> [ <!-- 日付 --> <%
+ if (!h.getBeforeDate().equals(h.getAfterDate())) {
+ %> <%=h.getAfterDate()%> * <%
+ } else {
+ %> <%=h.getAfterDate()%> <%
+ }
+ %> / <!-- 区分 --> <%
+ if (!h.getBeforeType().equals(h.getAfterType())) {
+ %> <%=h.getAfterType()%> * <%
+ } else {
+ %> <%=h.getAfterType()%> <%
+ }
+ %> / <!-- 用途 --> <%
+ if (!h.getBeforeItem().equals(h.getAfterItem())) {
+ %> <%=h.getAfterItem()%> * <%
+ } else {
+ %> <%=h.getAfterItem()%> <%
+ }
+ %> / <!-- 金額 --> 金額: <%
+ if (h.getBeforeAmount() != h.getAfterAmount()) {
+ %> <%=nf.format(h.getAfterAmount())%> * <%
+ } else {
+ %> <%=nf.format(h.getAfterAmount())%> <%
+ }
+ %> / <!-- メモ --> メモ: <%
+ String beforeMemo = h.getBeforeMemo() == null ? "" : h.getBeforeMemo();
+ String afterMemo = h.getAfterMemo() == null ? "" : h.getAfterMemo();
+
+ if (!beforeMemo.equals(afterMemo)) {
+ %> <%=afterMemo%> * <%
+ } else {
+ %> <%=afterMemo%> <%
+ }
+ %> ] <%
  }
  %>
 			</td>

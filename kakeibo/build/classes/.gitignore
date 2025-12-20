@@ -1,0 +1,25 @@
+# ===== Eclipse =====
+.project
+.classpath
+.settings/
+
+# ===== Build =====
+/bin/
+/target/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Java =====
+*.class
+*.war
+
+# ===== Logs =====
+/logs/
+/work/
+/temp/
+
+# ===== DB (local) =====
+*.db
+*.sqlite

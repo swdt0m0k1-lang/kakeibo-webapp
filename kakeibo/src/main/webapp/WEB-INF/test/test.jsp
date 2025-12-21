@@ -18,6 +18,28 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 <html>
 <head>
 <title>テストページ</title>
+
+<script>
+function copyForExcel(date, type, item, amount, memo) {
+    const text = [
+        date,
+        type,
+        item,
+        amount,
+        memo
+    ].join("\t"); // タブ区切り → Excelで列に分かれる
+
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            alert("Excel用にコピーしました");
+        })
+        .catch(err => {
+            alert("コピーに失敗しました");
+            console.error(err);
+        });
+}
+</script>
+
 </head>
 <body>
 
@@ -104,48 +126,82 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 				<%
 				if (h.isDeleted()) {
 				%> <strong style="color: red;">削除されました</strong> <%
- } else if (h.isRestored()) {
- %> <strong style="color: green;">復元されました</strong><br> [<%=h.getAfterDate()%>
+} else if (h.isRestored()) {
+%> <strong style="color: green;">復元されました</strong><br> [<%=h.getAfterDate()%>
 				/ <%=h.getAfterType()%> / <%=h.getAfterItem()%> / 金額:<%=nf.format(h.getAfterAmount())%>
-
-				/ メモ:<%=h.getAfterMemo()%>] <%
+				/ メモ:<%=h.getAfterMemo() == null ? "" : h.getAfterMemo()%>] <%
  } else {
- %> [ <!-- 日付 --> <%
- if (!h.getBeforeDate().equals(h.getAfterDate())) {
- %> <%=h.getAfterDate()%> * <%
- } else {
- %> <%=h.getAfterDate()%> <%
- }
- %> / <!-- 区分 --> <%
- if (!h.getBeforeType().equals(h.getAfterType())) {
- %> <%=h.getAfterType()%> * <%
- } else {
- %> <%=h.getAfterType()%> <%
- }
- %> / <!-- 用途 --> <%
- if (!h.getBeforeItem().equals(h.getAfterItem())) {
- %> <%=h.getAfterItem()%> * <%
- } else {
- %> <%=h.getAfterItem()%> <%
- }
- %> / <!-- 金額 --> 金額: <%
- if (h.getBeforeAmount() != h.getAfterAmount()) {
- %> <%=nf.format(h.getAfterAmount())%> * <%
- } else {
- %> <%=nf.format(h.getAfterAmount())%> <%
- }
- %> / <!-- メモ --> メモ: <%
  String beforeMemo = h.getBeforeMemo() == null ? "" : h.getBeforeMemo();
  String afterMemo = h.getAfterMemo() == null ? "" : h.getAfterMemo();
-
- if (!beforeMemo.equals(afterMemo)) {
- %> <%=afterMemo%> * <%
- } else {
- %> <%=afterMemo%> <%
- }
- %> ] <%
- }
+ %> [ <!-- 日付 --> <%=h.getAfterDate()%> <%
+ if (!h.getBeforeDate().equals(h.getAfterDate())) {
  %>
+				<span style="color: red; cursor: pointer; font-weight: bold;"
+				onclick="copyForExcel(
+     '<%=h.getAfterDate()%>',
+     '<%=h.getAfterType()%>',
+     '<%=h.getAfterItem()%>',
+     '<%=nf.format(h.getAfterAmount())%>',
+     '<%=afterMemo%>'
+ )"
+				title="Excel用にコピー">*</span> <%
+ }
+ %> / <!-- 区分 --> <%=h.getAfterType()%>
+				<%
+				if (!h.getBeforeType().equals(h.getAfterType())) {
+				%> <span
+				style="color: red; cursor: pointer; font-weight: bold;"
+				onclick="copyForExcel(
+     '<%=h.getAfterDate()%>',
+     '<%=h.getAfterType()%>',
+     '<%=h.getAfterItem()%>',
+     '<%=nf.format(h.getAfterAmount())%>',
+     '<%=afterMemo%>'
+ )">*</span>
+				<%
+				}
+				%> / <!-- 用途 --> <%=h.getAfterItem()%> <%
+ if (!h.getBeforeItem().equals(h.getAfterItem())) {
+ %>
+				<span style="color: red; cursor: pointer; font-weight: bold;"
+				onclick="copyForExcel(
+     '<%=h.getAfterDate()%>',
+     '<%=h.getAfterType()%>',
+     '<%=h.getAfterItem()%>',
+     '<%=nf.format(h.getAfterAmount())%>',
+     '<%=afterMemo%>'
+ )">*</span>
+				<%
+				}
+				%> / <!-- 金額 --> 金額:<%=nf.format(h.getAfterAmount())%> <%
+ if (h.getBeforeAmount() != h.getAfterAmount()) {
+ %>
+				<span style="color: red; cursor: pointer; font-weight: bold;"
+				onclick="copyForExcel(
+     '<%=h.getAfterDate()%>',
+     '<%=h.getAfterType()%>',
+     '<%=h.getAfterItem()%>',
+     '<%=nf.format(h.getAfterAmount())%>',
+     '<%=afterMemo%>'
+ )">*</span>
+				<%
+				}
+				%> / <!-- メモ --> メモ:<%=afterMemo%> <%
+ if (!beforeMemo.equals(afterMemo)) {
+ %>
+				<span style="color: red; cursor: pointer; font-weight: bold;"
+				onclick="copyForExcel(
+     '<%=h.getAfterDate()%>',
+     '<%=h.getAfterType()%>',
+     '<%=h.getAfterItem()%>',
+     '<%=nf.format(h.getAfterAmount())%>',
+     '<%=afterMemo%>'
+ )">*</span>
+				<%
+				}
+				%> ] <%
+}
+%>
 			</td>
 
 			<td><%=h.getUpdatedAt()%></td>

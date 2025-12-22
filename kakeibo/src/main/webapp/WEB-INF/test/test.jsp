@@ -234,11 +234,15 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 			<td><%=h.getKakeiboId()%></td>
 
 			<!-- 変更前 -->
+			<%
+			String beforeMemo = h.getBeforeMemo() == null ? "" : h.getBeforeMemo();
+			String afterMemo = h.getAfterMemo() == null ? "" : h.getAfterMemo();
+			%>
 			<td>
 				<%
 				if (!h.isRestored()) {
 				%> [<%=h.getBeforeDate()%> / <%=h.getBeforeType()%> / <%=h.getBeforeItem()%>
-				/ 金額:<%=nf.format(h.getBeforeAmount())%> / メモ:<%=h.getBeforeMemo()%>]
+				/ 金額:<%=nf.format(h.getBeforeAmount())%> / メモ:<%=beforeMemo%>]
 				<%
 				} else {
 				%> ― <%
@@ -247,10 +251,6 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 			</td>
 
 			<!-- 更新後 -->
-			<%
-			String beforeMemo = h.getBeforeMemo() == null ? "" : h.getBeforeMemo();
-			String afterMemo = h.getAfterMemo() == null ? "" : h.getAfterMemo();
-			%>
 
 			<td <%-- 削除以外のときだけ行コピーを有効にする --%>
 <%if (!h.isDeleted()) {%>

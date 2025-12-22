@@ -3,6 +3,7 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Kakeibo"%>
 <%@ page import="model.KakeiboHistory"%>
+
 <%@ page import="java.text.NumberFormat"%>
 <%
 NumberFormat nf = NumberFormat.getNumberInstance();
@@ -121,8 +122,30 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 	<%
 	}
 	%>
+	<%
+	if (Boolean.TRUE.equals(session.getAttribute("IS_DEMO"))) {
+	%>
+	<div align="right">
+		<form action="<%=request.getContextPath()%>/demo/reset" method="post">
+
+			<button type="submit" onclick="return confirm('デモデータを初期状態に戻しますか？');">
+				🔄 デモデータをリセット</button>
+		</form>
+	</div>
+	<%
+	}
+	%>
 	<h2>登録者一覧</h2>
 	<table border="1">
+		<%
+		if (users == null || users.isEmpty()) {
+		%>
+		<tr>
+			<td colspan="2">データがありません</td>
+		</tr>
+		<%
+		} else {
+		%>
 		<tr>
 			<th>ID</th>
 			<th>ユーザー名</th>
@@ -137,10 +160,22 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 		<%
 		}
 		%>
+		<%
+		}
+		%>
 	</table>
 
 	<h2>家計簿一覧</h2>
 	<table border="1">
+		<%
+		if (kakeibos == null || kakeibos.isEmpty()) {
+		%>
+		<tr>
+			<td colspan="7">データがありません</td>
+		</tr>
+		<%
+		} else {
+		%>
 		<tr>
 			<th>ID</th>
 			<th>ユーザーID</th>
@@ -165,10 +200,22 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 		<%
 		}
 		%>
+		<%
+		}
+		%>
 	</table>
 
 	<h2>修正ログ一覧</h2>
 	<table border="1">
+		<%
+		if (histories == null || histories.isEmpty()) {
+		%>
+		<tr>
+			<td colspan="6">データがありません</td>
+		</tr>
+		<%
+		} else {
+		%>
 		<tr>
 			<th>ID</th>
 			<th>ユーザーID</th>
@@ -259,6 +306,9 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 
 			<td><%=h.getUpdatedAt()%></td>
 		</tr>
+		<%
+}
+%>
 		<%
 }
 %>

@@ -33,7 +33,8 @@ public class LoginFilter implements Filter {
 				|| uri.equals(contextPath + "/login.jsp")
 				|| uri.equals(contextPath + "/register")
 				|| uri.equals(contextPath + "/test")
-				|| uri.equals(contextPath + "/demo");
+				|| uri.equals(contextPath + "/demo")
+				|| uri.equals(contextPath + "/demo/reset");
 		
 
 		boolean staticResource = uri.startsWith(contextPath + "/css/")

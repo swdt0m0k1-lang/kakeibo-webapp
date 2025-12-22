@@ -23,6 +23,15 @@ String userName = (String) request.getAttribute("userName");
 	background-color: #fff3cd;
 	transition: background-color 0.3s;
 }
+
+.demo-banner {
+	background: #fff3cd;
+	border: 1px solid #ffeeba;
+	color: #856404;
+	padding: 10px;
+	margin-bottom: 15px;
+	font-weight: bold;
+}
 </style>
 <script>
 function toggleAllHistory() {
@@ -50,6 +59,14 @@ window.onload = function () {
 </head>
 
 <body>
+	<%
+	Boolean isDemo = (Boolean) session.getAttribute("IS_DEMO");
+	if (isDemo != null && isDemo) {
+	%>
+	<div class="demo-banner">この画面はデモ用です。</div>
+	<%
+}
+%>
 	<h2
 		style="display: flex; justify-content: space-between; align-items: center;">
 		<span>家計簿 <%=(edit == null) ? "登録" : "編集"%></span> <span

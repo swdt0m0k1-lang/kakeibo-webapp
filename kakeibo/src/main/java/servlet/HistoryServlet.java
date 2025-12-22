@@ -16,29 +16,34 @@ import model.KakeiboHistory;
 @WebServlet("/history")
 public class HistoryServlet extends HttpServlet {
 
-    private KakeiboHistoryDao historyDao = new KakeiboHistoryDao();
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+		HttpSession session = request.getSession(false);
 
-        HttpSession session = request.getSession(false);
+		// ログインチェック
+		if (session == null || session.getAttribute("loginUserId") == null) {
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
+		}
 
-        // ログインチェック（二重安全）
-        if (session == null || session.getAttribute("loginUserId") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+		int userId = (int) session.getAttribute("loginUserId");
 
-        int userId = (int) session.getAttribute("loginUserId");
+		// ★ 使用DB名を取得（デモ / 通常）
+		String dbName = (String) session.getAttribute("DB_NAME");
+		if (dbName == null) {
+			dbName = "kakeibo"; // 念のための保険
+		}
 
-        // 履歴一覧取得
-        List<KakeiboHistory> historyList =
-                historyDao.findByUserId(userId);
+		// ★ DAO生成（ここで切替）
+		KakeiboHistoryDao historyDao = new KakeiboHistoryDao(dbName);
 
-        request.setAttribute("historyList", historyList);
+		List<KakeiboHistory> historyList = historyDao.findByUserId(userId);
 
-        request.getRequestDispatcher("/WEB-INF/jsp/history.jsp")
-               .forward(request, response);
-    }
+		request.setAttribute("historyList", historyList);
+
+		request.getRequestDispatcher("/WEB-INF/jsp/history.jsp")
+				.forward(request, response);
+	}
 }

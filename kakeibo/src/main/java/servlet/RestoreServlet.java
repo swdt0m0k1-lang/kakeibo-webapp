@@ -20,7 +20,7 @@ public class RestoreServlet extends HttpServlet {
 
 		HttpSession session = request.getSession();
 		Integer userId = (Integer) session.getAttribute("loginUserId");
-
+		String dbName = "kakeibo";
 		if (userId == null) {
 			response.sendRedirect("login");
 			return;
@@ -28,7 +28,7 @@ public class RestoreServlet extends HttpServlet {
 
 		int id = Integer.parseInt(request.getParameter("id"));
 
-		KakeiboDao dao = new KakeiboDao();
+		KakeiboDao dao = new KakeiboDao(dbName);
 		dao.restore(id, userId);
 
 		response.sendRedirect("list");

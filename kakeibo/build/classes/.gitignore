@@ -23,3 +23,7 @@ Thumbs.db
 # ===== DB (local) =====
 *.db
 *.sqlite
+/servlet/
+/dao/
+/test/
+/filter/

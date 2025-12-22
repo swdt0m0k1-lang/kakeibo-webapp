@@ -13,31 +13,38 @@ import dao.KakeiboDao;
 @WebServlet("/delete")
 public class DeleteServlet extends HttpServlet {
 
-	private KakeiboDao kakeiboDao = new KakeiboDao();
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+        // セッション取得
+        var session = request.getSession(false);
+        if (session == null || session.getAttribute("loginUserId") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-		// セッションからログインユーザーID取得
-		Integer userId = (Integer) request.getSession().getAttribute("loginUserId");
-		if (userId == null) {
-			response.sendRedirect(request.getContextPath() + "/login");
-			return;
-		}
+        // ★ デモモード判定
+        //if (Boolean.TRUE.equals(session.getAttribute("IS_DEMO"))) {
+        //    request.setAttribute("error", "デモモードでは削除できません");
+        //    request.getRequestDispatcher("/list").forward(request, response);
+        //    return;
+        //}
 
-		try {
-			int id = Integer.parseInt(request.getParameter("id"));
+        Integer userId = (Integer) session.getAttribute("loginUserId");
 
-			// 削除実行（履歴も同時に記録）
-			kakeiboDao.delete(id, userId);
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
 
-		} catch (NumberFormatException e) {
-			throw new ServletException("不正なIDです", e);
-		} catch (Exception e) {
-			throw new ServletException("削除処理に失敗しました", e);
-		}
+            KakeiboDao kakeiboDao = new KakeiboDao("kakeibo");
+            kakeiboDao.delete(id, userId);
 
-		response.sendRedirect(request.getContextPath() + "/list");
-	}
+        } catch (NumberFormatException e) {
+            throw new ServletException("不正なIDです", e);
+        } catch (Exception e) {
+            throw new ServletException("削除処理に失敗しました", e);
+        }
+
+        response.sendRedirect(request.getContextPath() + "/list");
+    }
 }

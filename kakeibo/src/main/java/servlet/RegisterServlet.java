@@ -13,37 +13,41 @@ import dao.UserDao;
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
 
-    // 登録画面表示
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        request.getRequestDispatcher("/WEB-INF/jsp/register.jsp")
-               .forward(request, response);
-    }
+		request.getRequestDispatcher("/WEB-INF/jsp/register.jsp")
+				.forward(request, response);
+	}
 
-    // 登録処理
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        request.setCharacterEncoding("UTF-8");
+		request.setCharacterEncoding("UTF-8");
 
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
 
-        UserDao dao = new UserDao();
+		// ★ セッションからDB名取得
+		String dbName = "kakeibo";
+		if (request.getSession(false) != null &&
+				request.getSession(false).getAttribute("DB_NAME") != null) {
+			dbName = (String) request.getSession(false).getAttribute("DB_NAME");
+		}
 
-        if (dao.exists(username)) {
-            request.setAttribute("error", "すでに存在するユーザー名です");
-            request.getRequestDispatcher("/WEB-INF/jsp/register.jsp")
-                   .forward(request, response);
-            return;
-        }
+		UserDao dao = new UserDao(dbName);
 
-        dao.insert(username, password);
+		if (dao.exists(username)) {
+			request.setAttribute("error", "すでに存在するユーザー名です");
+			request.getRequestDispatcher("/WEB-INF/jsp/register.jsp")
+					.forward(request, response);
+			return;
+		}
 
-        // 登録後はログイン画面へ
-        response.sendRedirect(request.getContextPath() + "/login");
-    }
+		dao.insert(username, password);
+
+		response.sendRedirect(request.getContextPath() + "/login");
+	}
 }

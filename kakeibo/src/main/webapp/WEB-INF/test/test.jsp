@@ -57,6 +57,15 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 .toast.show {
 	opacity: 1;
 }
+
+.demo-banner {
+	background: #fff3cd;
+	border: 1px solid #ffeeba;
+	color: #856404;
+	padding: 10px;
+	margin-bottom: 15px;
+	font-weight: bold;
+}
 </style>
 
 <script>
@@ -92,7 +101,26 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 
 </head>
 <body>
-
+	<%
+	Boolean isDemo = (Boolean) session.getAttribute("IS_DEMO");
+	if (isDemo != null && isDemo) {
+	%>
+	<div class="demo-banner">この画面はデモ用です。</div>
+	<%
+}
+%>
+	<div style="margin-bottom: 10px;"></div>
+	<%
+	if (Boolean.TRUE.equals(session.getAttribute("IS_DEMO"))) {
+	%>
+	<a href="<%=request.getContextPath()%>/demo?mode=off"> 通常モードに戻る </a>
+	<%
+	} else {
+	%>
+	<a href="<%=request.getContextPath()%>/demo?mode=on"> ▶ デモモードで表示 </a>
+	<%
+	}
+	%>
 	<h2>登録者一覧</h2>
 	<table border="1">
 		<tr>

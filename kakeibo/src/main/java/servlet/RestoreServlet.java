@@ -18,19 +18,33 @@ public class RestoreServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		HttpSession session = request.getSession();
-		Integer userId = (Integer) session.getAttribute("loginUserId");
-		String dbName = "kakeibo";
-		if (userId == null) {
-			response.sendRedirect("login");
+		HttpSession session = request.getSession(false);
+		if (session == null || session.getAttribute("loginUserId") == null) {
+			response.sendRedirect(request.getContextPath() + "/login");
 			return;
 		}
 
-		int id = Integer.parseInt(request.getParameter("id"));
+		Integer userId = (Integer) session.getAttribute("loginUserId");
 
-		KakeiboDao dao = new KakeiboDao(dbName);
-		dao.restore(id, userId);
+		// ★ デモ判定
+		boolean isDemo = Boolean.TRUE.equals(session.getAttribute("IS_DEMO"));
+		String dbName = isDemo ? "kakeibo_demo" : "kakeibo";
 
-		response.sendRedirect("list");
+		try {
+			int id = Integer.parseInt(request.getParameter("id"));
+
+			KakeiboDao dao = new KakeiboDao(dbName);
+			dao.restore(id, userId);
+
+			response.sendRedirect(request.getContextPath() + "/list");
+
+		} catch (NumberFormatException e) {
+			request.setAttribute("error", "不正なIDです");
+			request.getRequestDispatcher("/list").forward(request, response);
+
+		} catch (Exception e) {
+			request.setAttribute("error", "復元処理に失敗しました");
+			request.getRequestDispatcher("/list").forward(request, response);
+		}
 	}
 }

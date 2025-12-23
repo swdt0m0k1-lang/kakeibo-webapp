@@ -13,38 +13,38 @@ import dao.KakeiboDao;
 @WebServlet("/delete")
 public class DeleteServlet extends HttpServlet {
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        // セッション取得
-        var session = request.getSession(false);
-        if (session == null || session.getAttribute("loginUserId") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+		var session = request.getSession(false);
+		if (session == null || session.getAttribute("loginUserId") == null) {
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
+		}
 
-        // ★ デモモード判定
-        //if (Boolean.TRUE.equals(session.getAttribute("IS_DEMO"))) {
-        //    request.setAttribute("error", "デモモードでは削除できません");
-        //    request.getRequestDispatcher("/list").forward(request, response);
-        //    return;
-        //}
+		Integer userId = (Integer) session.getAttribute("loginUserId");
 
-        Integer userId = (Integer) session.getAttribute("loginUserId");
+		// ★ デモ判定
+		boolean isDemo = Boolean.TRUE.equals(session.getAttribute("IS_DEMO"));
 
-        try {
-            int id = Integer.parseInt(request.getParameter("id"));
+		// ★ 使用するDBを切り替える
+		// 通常: ~/kakeibo.mv.db
+		// デモ: ~/kakeibo_demo.mv.db
+		String dbName = isDemo ? "kakeibo_demo" : "kakeibo";
 
-            KakeiboDao kakeiboDao = new KakeiboDao("kakeibo");
-            kakeiboDao.delete(id, userId);
+		try {
+			int id = Integer.parseInt(request.getParameter("id"));
 
-        } catch (NumberFormatException e) {
-            throw new ServletException("不正なIDです", e);
-        } catch (Exception e) {
-            throw new ServletException("削除処理に失敗しました", e);
-        }
+			KakeiboDao dao = new KakeiboDao(dbName);
+			dao.delete(id, userId); // ← 論理削除＋履歴
 
-        response.sendRedirect(request.getContextPath() + "/list");
-    }
+		} catch (NumberFormatException e) {
+			throw new ServletException("不正なIDです", e);
+		} catch (Exception e) {
+			throw new ServletException("削除処理に失敗しました", e);
+		}
+
+		response.sendRedirect(request.getContextPath() + "/list");
+	}
 }

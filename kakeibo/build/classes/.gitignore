@@ -27,3 +27,7 @@ Thumbs.db
 /dao/
 /test/
 /filter/
+
+# ===== H2 =====
+*.mv.db
+*.trace.db

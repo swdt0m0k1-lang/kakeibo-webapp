@@ -12,123 +12,128 @@ import model.User;
 
 public class UserDao {
 
-    private static final String JDBC_URL = "jdbc:h2:~/kakeibo";
-    private static final String DB_USER = "sa";
-    private static final String DB_PASS = "";
+	private String dbName;
 
-    public UserDao() {
-        try {
-            Class.forName("org.h2.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("H2 Driver not found", e);
-        }
-    }
+	private static final String DB_USER = "sa";
+	private static final String DB_PASS = "";
 
-    /** 共通：DB接続 */
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(JDBC_URL, DB_USER, DB_PASS);
-    }
+	public UserDao(String dbName) {
+		this.dbName = dbName;
+		try {
+			Class.forName("org.h2.Driver");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException("H2 Driver not found", e);
+		}
+	}
 
-    /**
-     * ログイン認証
-     * @return 認証成功なら User、失敗なら null
-     */
-    public User login(String username, String password) {
-        String sql = "SELECT id, username FROM users WHERE username=? AND password=?";
+	private Connection getConnection() throws SQLException {
+		String url = "jdbc:h2:~/" + dbName;
+		return DriverManager.getConnection(url, DB_USER, DB_PASS);
+	}
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+	/**
+	 * ログイン認証
+	 * @return 認証成功なら User、失敗なら null
+	 */
+	public User login(String username, String password) {
+		String sql = "SELECT id, username FROM users WHERE username=? AND password=?";
 
-            ps.setString(1, username);
-            ps.setString(2, password);
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new User(rs.getInt("id"), rs.getString("username"));
-                }
-            }
+			ps.setString(1, username);
+			ps.setString(2, password);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return new User(rs.getInt("id"), rs.getString("username"));
+				}
+			}
 
-    /** ユーザー存在チェック */
-    public boolean exists(String username) {
-        String sql = "SELECT 1 FROM users WHERE username=?";
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+	/** ユーザー存在チェック */
+	public boolean exists(String username) {
+		String sql = "SELECT 1 FROM users WHERE username=?";
 
-            ps.setString(1, username);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+			ps.setString(1, username);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
 
-    /** 新規ユーザー登録 */
-    public void insert(String username, String password) {
-        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+	/** 新規ユーザー登録 */
+	public void insert(String username, String password) {
+		String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
 
-            ps.setString(1, username);
-            ps.setString(2, password);
-            ps.executeUpdate();
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+			ps.setString(1, username);
+			ps.setString(2, password);
+			ps.executeUpdate();
 
-    /** ユーザーID取得 */
-    public Integer findUserId(String username, String password) {
-        String sql = "SELECT id FROM users WHERE username=? AND password=?";
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+	/** ユーザーID取得 */
+	public Integer findUserId(String username, String password, String dbName) {
 
-            ps.setString(1, username);
-            ps.setString(2, password);
+		String url = "jdbc:h2:~/" + dbName;
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+		try (Connection con = DriverManager.getConnection(url, "sa", "");
+				PreparedStatement ps = con.prepareStatement(
+						"SELECT id FROM USERS WHERE USERNAME = ? AND PASSWORD = ?")) {
 
-    /** 全ユーザー取得 */
-    public List<User> findAll() {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT id, username FROM users";
+			ps.setString(1, username);
+			ps.setString(2, password);
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt("id");
+			}
 
-            while (rs.next()) {
-                User u = new User();
-                u.setId(rs.getInt("id"));
-                u.setUsername(rs.getString("username"));
-                list.add(u);
-            }
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+		return null;
+	}
 
-        return list;
-    }
+	/** 全ユーザー取得 */
+	public List<User> findAll() {
+		List<User> list = new ArrayList<>();
+		String sql = "SELECT id, username FROM users ORDER BY id";
+
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()) {
+
+			while (rs.next()) {
+				User u = new User();
+				u.setId(rs.getInt("id"));
+				u.setUsername(rs.getString("username"));
+				list.add(u);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
 }

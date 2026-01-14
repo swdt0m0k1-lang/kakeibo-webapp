@@ -3,6 +3,7 @@
 <%@ page import="model.User"%>
 <%@ page import="model.Kakeibo"%>
 <%@ page import="model.KakeiboHistory"%>
+
 <%@ page import="java.text.NumberFormat"%>
 <%
 NumberFormat nf = NumberFormat.getNumberInstance();
@@ -57,6 +58,15 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 .toast.show {
 	opacity: 1;
 }
+
+.demo-banner {
+	background: #fff3cd;
+	border: 1px solid #ffeeba;
+	color: #856404;
+	padding: 10px;
+	margin-bottom: 15px;
+	font-weight: bold;
+}
 </style>
 
 <script>
@@ -92,9 +102,50 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 
 </head>
 <body>
+	<%
+	Boolean isDemo = (Boolean) session.getAttribute("IS_DEMO");
+	if (isDemo != null && isDemo) {
+	%>
+	<div class="demo-banner">この画面はデモ用です。</div>
+	<%
+}
+%>
+	<div style="margin-bottom: 10px;"></div>
+	<%
+	if (Boolean.TRUE.equals(session.getAttribute("IS_DEMO"))) {
+	%>
+	<a href="<%=request.getContextPath()%>/demo?mode=off"> 通常モードに戻る </a>
+	<%
+	} else {
+	%>
+	<a href="<%=request.getContextPath()%>/demo?mode=on"> ▶ デモモードで表示 </a>
+	<%
+	}
+	%>
+	<%
+	if (Boolean.TRUE.equals(session.getAttribute("IS_DEMO"))) {
+	%>
+	<div align="right">
+		<form action="<%=request.getContextPath()%>/demo/reset" method="post">
 
+			<button type="submit" onclick="return confirm('デモデータを初期状態に戻しますか？');">
+				🔄 デモデータをリセット</button>
+		</form>
+	</div>
+	<%
+	}
+	%>
 	<h2>登録者一覧</h2>
 	<table border="1">
+		<%
+		if (users == null || users.isEmpty()) {
+		%>
+		<tr>
+			<td colspan="2">データがありません</td>
+		</tr>
+		<%
+		} else {
+		%>
 		<tr>
 			<th>ID</th>
 			<th>ユーザー名</th>
@@ -109,10 +160,22 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 		<%
 		}
 		%>
+		<%
+		}
+		%>
 	</table>
 
 	<h2>家計簿一覧</h2>
 	<table border="1">
+		<%
+		if (kakeibos == null || kakeibos.isEmpty()) {
+		%>
+		<tr>
+			<td colspan="7">データがありません</td>
+		</tr>
+		<%
+		} else {
+		%>
 		<tr>
 			<th>ID</th>
 			<th>ユーザーID</th>
@@ -137,10 +200,22 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 		<%
 		}
 		%>
+		<%
+		}
+		%>
 	</table>
 
 	<h2>修正ログ一覧</h2>
 	<table border="1">
+		<%
+		if (histories == null || histories.isEmpty()) {
+		%>
+		<tr>
+			<td colspan="6">データがありません</td>
+		</tr>
+		<%
+		} else {
+		%>
 		<tr>
 			<th>ID</th>
 			<th>ユーザーID</th>
@@ -159,11 +234,15 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 			<td><%=h.getKakeiboId()%></td>
 
 			<!-- 変更前 -->
+			<%
+			String beforeMemo = h.getBeforeMemo() == null ? "" : h.getBeforeMemo();
+			String afterMemo = h.getAfterMemo() == null ? "" : h.getAfterMemo();
+			%>
 			<td>
 				<%
 				if (!h.isRestored()) {
 				%> [<%=h.getBeforeDate()%> / <%=h.getBeforeType()%> / <%=h.getBeforeItem()%>
-				/ 金額:<%=nf.format(h.getBeforeAmount())%> / メモ:<%=h.getBeforeMemo()%>]
+				/ 金額:<%=nf.format(h.getBeforeAmount())%> / メモ:<%=beforeMemo%>]
 				<%
 				} else {
 				%> ― <%
@@ -172,10 +251,6 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 			</td>
 
 			<!-- 更新後 -->
-			<%
-			String beforeMemo = h.getBeforeMemo() == null ? "" : h.getBeforeMemo();
-			String afterMemo = h.getAfterMemo() == null ? "" : h.getAfterMemo();
-			%>
 
 			<td <%-- 削除以外のときだけ行コピーを有効にする --%>
 <%if (!h.isDeleted()) {%>
@@ -231,6 +306,9 @@ List<KakeiboHistory> histories = (List<KakeiboHistory>) request.getAttribute("hi
 
 			<td><%=h.getUpdatedAt()%></td>
 		</tr>
+		<%
+}
+%>
 		<%
 }
 %>

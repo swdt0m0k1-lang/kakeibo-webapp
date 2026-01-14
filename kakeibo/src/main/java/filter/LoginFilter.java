@@ -32,7 +32,10 @@ public class LoginFilter implements Filter {
 		boolean loginRequest = uri.equals(contextPath + "/login")
 				|| uri.equals(contextPath + "/login.jsp")
 				|| uri.equals(contextPath + "/register")
-				|| uri.equals(contextPath + "/test");
+				|| uri.equals(contextPath + "/test")
+				|| uri.equals(contextPath + "/demo")
+				|| uri.equals(contextPath + "/demo/reset");
+		
 
 		boolean staticResource = uri.startsWith(contextPath + "/css/")
 				|| uri.startsWith(contextPath + "/js/")

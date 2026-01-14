@@ -8,6 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import dao.KakeiboDao;
 import dao.KakeiboHistoryDao;
@@ -19,13 +20,23 @@ import model.User;
 @WebServlet("/test")
 public class TestServlet extends HttpServlet {
 
-    private UserDao userDao = new UserDao();
-    private KakeiboDao kakeiboDao = new KakeiboDao();
-    private KakeiboHistoryDao historyDao = new KakeiboHistoryDao();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // セッション取得（ログインしていなくてもOK）
+        HttpSession session = request.getSession(false);
+
+        // ★ 使用DB名を決定
+        String dbName = "kakeibo";
+        if (session != null && session.getAttribute("DB_NAME") != null) {
+            dbName = (String) session.getAttribute("DB_NAME");
+        }
+
+        // ★ DAO生成（DB切替対応）
+        UserDao userDao = new UserDao(dbName);
+        KakeiboDao kakeiboDao = new KakeiboDao(dbName);
+        KakeiboHistoryDao historyDao = new KakeiboHistoryDao(dbName);
 
         // 登録者一覧
         List<User> users = userDao.findAll();
@@ -39,7 +50,11 @@ public class TestServlet extends HttpServlet {
         List<KakeiboHistory> histories = historyDao.findAll();
         request.setAttribute("histories", histories);
 
+        // デモ判定（表示用）
+        boolean isDemo = session != null && Boolean.TRUE.equals(session.getAttribute("IS_DEMO"));
+        request.setAttribute("isDemo", isDemo);
+
         request.getRequestDispatcher("/WEB-INF/test/test.jsp")
-               .forward(request, response);
+                .forward(request, response);
     }
 }

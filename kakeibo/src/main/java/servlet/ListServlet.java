@@ -1,7 +1,7 @@
 package servlet;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.util.List;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,9 +17,6 @@ import model.Kakeibo;
 @WebServlet("/list")
 public class ListServlet extends HttpServlet {
 
-	private KakeiboDao dao = new KakeiboDao();
-	private KakeiboHistoryDao historyDao = new KakeiboHistoryDao();
-
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -30,37 +27,43 @@ public class ListServlet extends HttpServlet {
 			return;
 		}
 
-		int userId = (int) session.getAttribute("loginUserId");
+		Integer userId = (Integer) session.getAttribute("loginUserId");
 		String userName = (String) session.getAttribute("loginUserName");
 
-		//ユーザー名
-		request.setAttribute("userName", userName);
-		// 家計簿一覧
-		request.setAttribute("list", dao.findByUserId(userId));
+		// ★ DB 名取得（demo / 本番）
+		String dbName = (String) session.getAttribute("DB_NAME");
+		if (dbName == null) {
+			dbName = "kakeibo";
+		}
 
-		// ★ 変更履歴一覧（全体）← 常に表示したい
+		// DAO生成（★ここ重要）
+		KakeiboDao dao = new KakeiboDao(dbName);
+		KakeiboHistoryDao historyDao = new KakeiboHistoryDao(dbName);
+
+		// ユーザー名
+		request.setAttribute("userName", userName);
+
+		// 家計簿一覧
+		List<Kakeibo> list = dao.findByUserId(userId);
+		request.setAttribute("list", list);
+
+		// 変更履歴一覧（ユーザー単位）
 		request.setAttribute(
 				"historyList",
 				historyDao.findByUserId(userId));
 
 		// 編集対象
 		String editIdStr = request.getParameter("editId");
-		if (editIdStr != null) {
+		if (editIdStr != null && !editIdStr.isBlank()) {
 			int editId = Integer.parseInt(editIdStr);
 
 			// 編集データ
 			Kakeibo edit = dao.findById(editId, userId);
 			request.setAttribute("edit", edit);
 
-			// ★ その行だけの履歴（別名！）
-			try {
-				request.setAttribute(
-						"rowHistoryList",
-						historyDao.findByKakeiboId(editId));
-			} catch (SQLException e) {
-				// TODO 自動生成された catch ブロック
-				e.printStackTrace();
-			}
+			request.setAttribute(
+					"rowHistoryList",
+					historyDao.findByKakeiboId(editId));
 		}
 
 		request.getRequestDispatcher("/WEB-INF/jsp/list.jsp")
@@ -74,7 +77,14 @@ public class ListServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 
 		HttpSession session = request.getSession();
-		int userId = (int) session.getAttribute("loginUserId");
+		Integer userId = (Integer) session.getAttribute("loginUserId");
+
+		String dbName = (String) session.getAttribute("DB_NAME");
+		if (dbName == null) {
+			dbName = "kakeibo";
+		}
+
+		KakeiboDao dao = new KakeiboDao(dbName);
 
 		Kakeibo k = new Kakeibo();
 		k.setUserId(userId);
@@ -90,12 +100,12 @@ public class ListServlet extends HttpServlet {
 			// 新規登録
 			dao.insert(k);
 		} else {
-			// 更新（履歴保存は Dao 側で実施）
+			// 更新（履歴保存は Dao 側）
 			k.setId(Integer.parseInt(id));
 			dao.update(k);
 		}
 
-		// PRGパターン（二重送信防止）
+		// PRGパターン
 		response.sendRedirect(request.getContextPath() + "/list");
 	}
 }
